@@ -1,0 +1,28 @@
+# SHMS pion: target to focal-plane center
+# Mass: 0.13957039 GeV/c^2; path length: 18.1 m
+# Constant momentum and fixed trajectory length; no energy loss or decay.
+# Absolute TOF for the supplied path; no event-specific path correction.
+# TOF = L/(beta*c); beta = p/sqrt(p^2 + m^2); c = 0.299792458 m/ns
+  momentum_GeV_c    path_length_m           tof_ns
+             0.5             18.1        62.683184
+             1.0             18.1        60.960315
+             1.5             18.1        60.635894
+             2.0             18.1        60.521935
+             2.5             18.1        60.469116
+             3.0             18.1        60.440405
+             3.5             18.1        60.423086
+             4.0             18.1        60.411843
+             4.5             18.1        60.404134
+             5.0             18.1        60.398619
+             5.5             18.1        60.394538
+             6.0             18.1        60.391434
+             6.5             18.1        60.389018
+             7.0             18.1        60.387101
+             7.5             18.1        60.385555
+             8.0             18.1        60.384289
+             8.5             18.1        60.383240
+             9.0             18.1        60.382361
+             9.5             18.1        60.381617
+            10.0             18.1        60.380981
+            10.5             18.1        60.380435
+            11.0             18.1        60.379961

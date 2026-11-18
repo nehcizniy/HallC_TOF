@@ -1,0 +1,28 @@
+# SHMS kaon: target to focal-plane center
+# Mass: 0.493677 GeV/c^2; path length: 18.1 m
+# Constant momentum and fixed trajectory length; no energy loss or decay.
+# Absolute TOF for the supplied path; no event-specific path correction.
+# TOF = L/(beta*c); beta = p/sqrt(p^2 + m^2); c = 0.299792458 m/ns
+  momentum_GeV_c    path_length_m           tof_ns
+             0.5             18.1        84.845126
+             1.0             18.1        67.331556
+             1.5             18.1        63.560923
+             2.0             18.1        62.187211
+             2.5             18.1        61.540999
+             3.0             18.1        61.187109
+             3.5             18.1        60.972733
+             4.0             18.1        60.833190
+             4.5             18.1        60.737334
+             5.0             18.1        60.668676
+             5.5             18.1        60.617827
+             6.0             18.1        60.579124
+             6.5             18.1        60.548986
+             7.0             18.1        60.525062
+             7.5             18.1        60.505755
+             8.0             18.1        60.489949
+             8.5             18.1        60.476846
+             9.0             18.1        60.465863
+             9.5             18.1        60.456567
+            10.0             18.1        60.448629
+            10.5             18.1        60.441797
+            11.0             18.1        60.435874

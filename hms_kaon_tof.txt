@@ -1,0 +1,28 @@
+# HMS kaon: target to focal-plane center
+# Mass: 0.493677 GeV/c^2; path length: 22 m
+# Constant momentum and fixed trajectory length; no energy loss or decay.
+# Absolute TOF for the supplied path; no event-specific path correction.
+# TOF = L/(beta*c); beta = p/sqrt(p^2 + m^2); c = 0.299792458 m/ns
+  momentum_GeV_c    path_length_m           tof_ns
+             0.5               22       103.126673
+             1.0               22        81.839461
+             1.5               22        77.256370
+             2.0               22        75.586666
+             2.5               22        74.801214
+             3.0               22        74.371072
+             3.5               22        74.110504
+             4.0               22        73.940893
+             4.5               22        73.824384
+             5.0               22        73.740932
+             5.5               22        73.679127
+             6.0               22        73.632084
+             6.5               22        73.595453
+             7.0               22        73.566374
+             7.5               22        73.542906
+             8.0               22        73.523694
+             8.5               22        73.507768
+             9.0               22        73.494419
+             9.5               22        73.483120
+            10.0               22        73.473471
+            10.5               22        73.465167
+            11.0               22        73.457969
