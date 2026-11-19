@@ -24,7 +24,7 @@ python3 generate_hms_tof_tables.py
 Optional arguments:
 
 ```bash
-python3 generate_shms_tof_tables.py --path-length-m 18.1 --output-dir tables
+python3 generate_shms_tof_tables.py --path-length-m 18.1 --output-dir results
 ```
 
 Each Python script also generates the five PNG/PDF plots for its spectrometer,
@@ -44,7 +44,8 @@ python3 generate_hms_tof_tables.py --tables-only
 
 Each script writes individual electron, pion, kaon, and proton tables, plus
 one combined table, in CSV, TXT, and PDF formats. Files use `shms_` or `hms_`
-prefixes. Outputs default to the script directory; matching files are overwritten.
+prefixes. Tables go under `OUTPUT_DIR/tables/SHMS/` or `OUTPUT_DIR/tables/HMS/`.
+`OUTPUT_DIR` defaults to the script directory; matching files are overwritten.
 
 PDFs use serif text, a compact caption, three horizontal rules, and no shading
 or vertical rules. They include column units and calculation notes. Combined PDFs
@@ -65,10 +66,11 @@ one combined plot, in PNG and vector PDF formats. Outputs are saved under
 `plots/SHMS/` or `plots/HMS/`, for example
 `plots/SHMS/shms_tof_vs_momentum_all.pdf`. PNGs are 1800 × 1350 pixels.
 
+By default, the macros read `tables/SHMS/` or `tables/HMS/` beside the scripts.
 Optional arguments select the input table directory and output directory:
 
 ```bash
-root -l -b -q 'plot_TOF_vs_momentum_SHMS.C(".", "my_plots/SHMS")'
+root -l -b -q 'plot_TOF_vs_momentum_SHMS.C("tables/SHMS", "my_plots/SHMS")'
 ```
 
 Markers show the CSV table values; smooth curves use the relativistic TOF
@@ -110,6 +112,9 @@ particle decay, or event-specific path correction. The momentum grid is a
 theoretical calculation, not a statement of spectrometer operating limits.
 
 ## Files
+
+- `tables/SHMS/`, `tables/HMS/`: generated CSV, TXT, and PDF tables.
+- `plots/SHMS/`, `plots/HMS/`: generated PNG and PDF plots.
 
 - `common_parameters.py`: shared masses, speed of light, and momentum grid.
 - `shms_parameters.py`, `hms_parameters.py`: spectrometer settings.

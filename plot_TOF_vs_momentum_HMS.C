@@ -1,6 +1,6 @@
 // Usage: root -l -b -q 'plot_TOF_vs_momentum_HMS.C()'
 // Optional: plot_TOF_vs_momentum_HMS.C("table_directory", "output_directory")
-// Defaults: tables beside this macro; PNG/PDF plots in plots/HMS.
+// Defaults: tables in tables/HMS; PNG/PDF plots in plots/HMS, beside this macro.
 #include "tof_plot_functions.h"
 
 void plot_TOF_vs_momentum_HMS(const char* table_directory = "", const char* output_directory = "") {

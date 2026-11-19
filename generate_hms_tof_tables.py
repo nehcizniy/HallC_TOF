@@ -4,13 +4,13 @@
 Setup: python3 -m pip install -r requirements.txt; ROOT 6 must be on PATH.
 
 Usage: python3 generate_hms_tof_tables.py
-       python3 generate_hms_tof_tables.py --path-length-m LENGTH --output-dir tables
+       python3 generate_hms_tof_tables.py --path-length-m LENGTH --output-dir results
        python3 generate_hms_tof_tables.py --tables-only
 
 Writes individual and combined hms_tof tables in CSV, TXT, and PDF formats.
 Plots use the same ROOT macros and style, under OUTPUT_DIR/plots/HMS.
 LENGTH is in meters. Defaults come from the parameter modules.
-Tables are written beside this script unless --output-dir is given;
+Tables go under OUTPUT_DIR/tables/HMS. OUTPUT_DIR defaults to this script directory;
 existing files with the same names are overwritten.
 """
 
@@ -34,25 +34,26 @@ def main():
     )
     parser.add_argument(
         "--output-dir", type=Path, default=Path(__file__).resolve().parent,
-        help="output directory (default: script directory)",
+        help="base directory for tables/ and plots/ (default: script directory)",
     )
     parser.add_argument(
         "--tables-only", action="store_true", help="skip ROOT plots and generate only tables",
     )
     args = parser.parse_args()
+    table_dir = args.output_dir / "tables" / parameters.SPECTROMETER
     # Check plotting dependencies before writing output files.
     command = None
     if not args.tables_only:
         try:
             command = plot_command(
-                args.output_dir, args.output_dir / "plots" / parameters.SPECTROMETER,
+                table_dir, args.output_dir / "plots" / parameters.SPECTROMETER,
                 spectrometer=parameters.SPECTROMETER,
             )
         except (ValueError, RuntimeError) as exc:
             parser.error(str(exc))
     # Generate tables with the selected settings.
     generate_tables(
-        args.path_length_m, args.output_dir,
+        args.path_length_m, table_dir,
         spectrometer=parameters.SPECTROMETER,
         filename_prefix=parameters.FILENAME_PREFIX,
         masses_gev_c2=common.MASSES_GEV_C2,

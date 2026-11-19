@@ -350,7 +350,7 @@ inline void DrawPlot(const TableData& data, const std::string& spectrometer,
 inline void Plot(const std::string& spectrometer, const std::string& prefix,
                  const char* macroFile, const char* inputDirectory, const char* outputDirectory) {
     const std::string base = gSystem->DirName(macroFile);
-    const std::string input = inputDirectory[0] ? inputDirectory : base;
+    const std::string input = inputDirectory[0] ? inputDirectory : Join(base, "tables/" + spectrometer);
     const std::string output = outputDirectory[0] ? outputDirectory : Join(base, "plots/" + spectrometer);
     const TableData data = ReadTables(input, prefix);
     if (gSystem->AccessPathName(output.c_str()) && gSystem->mkdir(output.c_str(), true) != 0)
