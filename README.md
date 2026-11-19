@@ -35,6 +35,37 @@ or vertical rules. They include column units and calculation notes. Combined PDF
 are `shms_tof.pdf` and `hms_tof.pdf`; individual PDFs use the same names as
 the corresponding CSV files, with a `.pdf` extension.
 
+## ROOT plots
+
+Run the ROOT 6 macros from this directory (no Python environment is needed):
+
+```bash
+root -l -b -q 'plot_TOF_vs_momentum_SHMS.C()'
+root -l -b -q 'plot_TOF_vs_momentum_HMS.C()'
+```
+
+Each macro generates individual electron, pion, kaon, and proton plots plus
+one combined plot, in PNG and vector PDF formats. Outputs are saved under
+`plots/SHMS/` or `plots/HMS/`, for example
+`plots/SHMS/shms_tof_vs_momentum_all.pdf`. PNGs are 1800 × 1350 pixels.
+
+Optional arguments select the input table directory and output directory:
+
+```bash
+root -l -b -q 'plot_TOF_vs_momentum_SHMS.C(".", "my_plots/SHMS")'
+```
+
+Markers show the CSV table values; smooth curves use the relativistic TOF
+formula. Masses and the speed of light are read from the individual TXT table
+headers, and the path length comes from the combined CSV. The macros reject
+inconsistent inputs before plotting. Keep the CSV and TXT tables together.
+
+Plots use serif labels and distinct colors, line styles, and markers.
+Electrons are light grey (`#B3B3B3`); pions blue, kaons orange, and protons green.
+The individual electron plot uses a minimum 0.2 ns vertical span so the tiny
+physical variation is not visually exaggerated. Run output can be saved with
+`2>&1 | tee root-run.log` (use `set -o pipefail` in shell scripts).
+
 ## Parameters and calculation
 
 - SHMS central path: 18.1 m; HMS central path: 22.0 m.
@@ -59,7 +90,9 @@ theoretical calculation, not a statement of spectrometer operating limits.
 - `shms_parameters.py`, `hms_parameters.py`: spectrometer settings.
 - `tof_functions.py`: common functions and sections reserved for future
   spectrometer-specific corrections.
-- `generate_shms_tof_tables.py`, `generate_hms_tof_tables.py`: entry scripts.
+- `generate_shms_tof_tables.py`, `generate_hms_tof_tables.py`: table entry scripts.
+- `plot_TOF_vs_momentum_SHMS.C`, `plot_TOF_vs_momentum_HMS.C`: ROOT plot entry macros.
+- `tof_plot_functions.h`: shared ROOT plotting and input checks.
 
 ## Parameter sources
 
