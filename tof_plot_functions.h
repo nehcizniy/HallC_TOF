@@ -28,7 +28,9 @@ namespace HallCTOF {
 static const std::array<const char*, 4> particles = {{"electron", "pion", "kaon", "proton"}};
 static const std::array<const char*, 4> labels = {{"Electron", "Pion", "Kaon", "Proton"}};
 static const std::array<const char*, 4> colors = {{"#B3B3B3", "#0072B2", "#D55E00", "#009E73"}};
-static const int lineStyle = 1;
+static const std::array<int, 4> lineStyles = {{1, 2, 7, 9}};
+static const std::array<double, 4> dashPixels = {{0, 6, 10, 40}};
+static const std::array<double, 4> gapPixels = {{0, 6, 10, 10}};
 static const double markerSize = 1.2;
 static const std::array<int, 4> markerStyles = {{20, 21, 22, 23}};
 
@@ -120,6 +122,60 @@ inline TableData ReadTables(const std::string& directory, const std::string& pre
     return data;
 }
 
+// Split sampled functions into visible dashes with continuous screen-space spacing.
+inline void DrawDashedCurve(const TF1& function, unsigned particle, double xScale,
+                            double yScale, std::vector<std::unique_ptr<TGraph>>& strokes) {
+    const double dash = dashPixels[particle], gap = gapPixels[particle];
+    bool visible = true;
+    double remaining = dash;
+    std::vector<double> xs, ys;
+    auto flush = [&]() {
+        if (xs.size() > 1) {
+            std::unique_ptr<TGraph> stroke(new TGraph(xs.size(), xs.data(), ys.data()));
+            stroke->SetLineColor(function.GetLineColor());
+            stroke->SetLineWidth(function.GetLineWidth());
+            stroke->SetLineStyle(1);
+            stroke->Draw("L SAME");
+            strokes.push_back(std::move(stroke));
+        }
+        xs.clear();
+        ys.clear();
+    };
+    double x = function.GetXmin(), y = function.Eval(x);
+    xs.push_back(x);
+    ys.push_back(y);
+    for (int step = 1; step <= function.GetNpx(); ++step) {
+        const double endX = function.GetXmin() +
+            (function.GetXmax() - function.GetXmin()) * step / function.GetNpx();
+        const double endY = function.Eval(endX);
+        double distance = std::hypot((endX - x) * xScale, (endY - y) * yScale);
+        while (distance > 1e-10) {
+            const double advance = std::min(remaining, distance);
+            const double fraction = advance / distance;
+            x += fraction * (endX - x);
+            y += fraction * (endY - y);
+            if (visible) {
+                xs.push_back(x);
+                ys.push_back(y);
+            }
+            distance -= advance;
+            remaining -= advance;
+            if (remaining < 1e-10) {
+                if (visible) flush();
+                visible = !visible;
+                remaining = visible ? dash : gap;
+                if (visible) {
+                    xs.push_back(x);
+                    ys.push_back(y);
+                }
+            }
+        }
+        x = endX;
+        y = endY;
+    }
+    flush();
+}
+
 // Draw one particle or all particles; save raster PNG and vector PDF.
 inline void DrawPlot(const TableData& data, const std::string& spectrometer,
                      const std::string& prefix, const std::vector<unsigned>& selected,
@@ -176,6 +232,11 @@ inline void DrawPlot(const TableData& data, const std::string& spectrometer,
     legend.SetFillStyle(0);
     legend.SetTextFont(132);
     legend.SetTextSize(0.042);
+    const double xScale = canvas.GetWw() * (1 - canvas.GetLeftMargin() - canvas.GetRightMargin()) /
+        (frame->GetXaxis()->GetXmax() - frame->GetXaxis()->GetXmin());
+    const double yScale = canvas.GetWh() * (1 - canvas.GetTopMargin() - canvas.GetBottomMargin()) /
+        (upper - lower);
+    std::vector<std::unique_ptr<TGraph>> strokes;
     std::vector<std::unique_ptr<TF1>> curves;
     std::vector<std::unique_ptr<TGraph>> points;
     for (unsigned i : selected) {
@@ -186,15 +247,16 @@ inline void DrawPlot(const TableData& data, const std::string& spectrometer,
         curve->SetNpx(2000);
         curve->SetLineColor(color);
         curve->SetLineWidth(2);
-        curve->SetLineStyle(lineStyle);
-        curve->Draw("SAME");
+        curve->SetLineStyle(lineStyles[i]);
+        if (lineStyles[i] == 1) curve->Draw("SAME");
+        else DrawDashedCurve(*curve, i, xScale, yScale, strokes);
         std::unique_ptr<TGraph> graph(new TGraph(data.momentum.size(), data.momentum.data(), data.tof[i].data()));
         graph->SetMarkerColor(color);
         graph->SetMarkerStyle(markerStyles[i]);
         graph->SetMarkerSize(markerSize);
         graph->SetLineColor(color);
         graph->SetLineWidth(2);
-        graph->SetLineStyle(lineStyle);
+        graph->SetLineStyle(lineStyles[i]);
         graph->Draw("P SAME");
         legend.AddEntry(graph.get(), labels[i], "lp");
         curves.push_back(std::move(curve));
