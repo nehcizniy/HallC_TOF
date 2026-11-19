@@ -157,8 +157,8 @@ inline void DrawPlot(const TableData& data, const std::string& spectrometer,
                                   data.momentum.back() + 0.25, upper);
     frame->SetTitle("");
     frame->SetStats(false);
-    frame->GetXaxis()->SetTitle("Momentum, #it{p} (GeV/#it{c})");
-    frame->GetYaxis()->SetTitle("Time of flight, #it{t} (ns)");
+    frame->GetXaxis()->SetTitle("p(GeV/c)");
+    frame->GetYaxis()->SetTitle("TOF(ns)");
     for (TAxis* axis : {frame->GetXaxis(), frame->GetYaxis()}) {
         axis->SetTitleFont(132);
         axis->SetLabelFont(132);
