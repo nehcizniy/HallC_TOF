@@ -184,7 +184,7 @@ inline void DrawPlot(const TableData& data, const std::string& spectrometer,
         curve->SetParameters(data.length, data.speedOfLight, data.mass[i]);
         curve->SetNpx(2000);
         curve->SetLineColor(color);
-        curve->SetLineWidth(3);
+        curve->SetLineWidth(2);
         curve->SetLineStyle(lineStyles[i]);
         curve->Draw("SAME");
         std::unique_ptr<TGraph> graph(new TGraph(data.momentum.size(), data.momentum.data(), data.tof[i].data()));
@@ -192,7 +192,7 @@ inline void DrawPlot(const TableData& data, const std::string& spectrometer,
         graph->SetMarkerStyle(markerStyles[i]);
         graph->SetMarkerSize(0.9);
         graph->SetLineColor(color);
-        graph->SetLineWidth(3);
+        graph->SetLineWidth(2);
         graph->SetLineStyle(lineStyles[i]);
         graph->Draw("P SAME");
         legend.AddEntry(graph.get(), labels[i], "lp");
