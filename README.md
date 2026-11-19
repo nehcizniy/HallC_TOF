@@ -60,11 +60,11 @@ formula. Masses and the speed of light are read from the individual TXT table
 headers, and the path length comes from the combined CSV. The macros reject
 inconsistent inputs before plotting. Keep the CSV and TXT tables together.
 
-Plots use a logarithmic TOF (y) axis, a linear momentum (x) axis, serif labels,
+Plots use linear TOF (y) and momentum (x) axes, serif labels,
 and distinct colors, line styles, and markers.
 Electrons are light grey (`#B3B3B3`); pions blue, kaons orange, and protons green.
-Y-axis ranges span at least a factor of two to keep logarithmic ticks readable
-for nearly constant curves, including electrons. Run output can be saved with
+The individual electron plot uses a minimum 0.2 ns vertical span so the tiny
+physical variation is not visually exaggerated. Run output can be saved with
 `2>&1 | tee root-run.log` (use `set -o pipefail` in shell scripts).
 
 ## Parameters and calculation

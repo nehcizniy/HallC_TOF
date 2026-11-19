@@ -133,12 +133,10 @@ inline void DrawPlot(const TableData& data, const std::string& spectrometer,
     }
     const double span = maximum - minimum;
     double lower = minimum - 0.07 * span, upper = maximum + 0.10 * span;
-    lower = std::max(lower, 0.8 * minimum);
-    // Keep positive bounds and readable log ticks for nearly constant curves.
-    if (upper / lower < 2.0) {
-        const double center = std::sqrt(minimum * maximum);
-        lower = center / std::sqrt(2.0);
-        upper = center * std::sqrt(2.0);
+    if (span < 0.2) {
+        const double center = (minimum + maximum) / 2;
+        lower = center - 0.1;
+        upper = center + 0.1;
     }
 
     TCanvas canvas(stem.c_str(), stem.c_str(), 1800, 1350);
@@ -152,7 +150,7 @@ inline void DrawPlot(const TableData& data, const std::string& spectrometer,
     canvas.SetTopMargin(0.13);
     canvas.SetBottomMargin(0.15);
     canvas.SetTicks(1, 1);
-    canvas.SetLogy();
+    canvas.SetLogy(false);
     TH1F* frame = canvas.DrawFrame(data.momentum.front() - 0.15, lower,
                                   data.momentum.back() + 0.25, upper);
     frame->SetTitle("");
@@ -171,8 +169,6 @@ inline void DrawPlot(const TableData& data, const std::string& spectrometer,
     frame->GetXaxis()->SetNdivisions(510);
     frame->GetXaxis()->SetTitleOffset(1.05);
     frame->GetYaxis()->SetTitleOffset(1.25);
-    frame->GetYaxis()->SetMoreLogLabels();
-    frame->GetYaxis()->SetNoExponent();
 
     TLegend legend(0.67, 0.60, 0.93, 0.83);
     legend.SetBorderSize(0);
