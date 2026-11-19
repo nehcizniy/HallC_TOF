@@ -199,6 +199,8 @@ inline void DrawPlot(const TableData& data, const std::string& spectrometer,
         upper = center + 0.1;
     }
 
+    if (combined && spectrometer == "SHMS") lower = 50.0;
+
     TCanvas canvas(stem.c_str(), stem.c_str(), 1800, 1350);
     canvas.SetCanvasSize(1800, 1350);
     canvas.SetFillColor(kWhite);
@@ -209,10 +211,9 @@ inline void DrawPlot(const TableData& data, const std::string& spectrometer,
     canvas.SetRightMargin(0.04);
     canvas.SetTopMargin(0.13);
     canvas.SetBottomMargin(0.15);
-    canvas.SetTicks(1, 0);
+    canvas.SetTicks(1, combined ? 0 : 1);
     canvas.SetLogy(false);
-    TH1F* frame = canvas.DrawFrame(data.momentum.front() - 0.15, lower,
-                                  data.momentum.back() + 0.25, upper);
+    TH1F* frame = canvas.DrawFrame(0.0, lower, 11.5, upper);
     frame->SetTitle("");
     frame->SetStats(false);
     frame->GetXaxis()->SetTitle("p(GeV/c)");
@@ -227,6 +228,7 @@ inline void DrawPlot(const TableData& data, const std::string& spectrometer,
         axis->SetNdivisions(505);
     }
     frame->GetXaxis()->SetNdivisions(510);
+    if (combined && spectrometer == "SHMS") frame->GetYaxis()->SetNdivisions(510);
     frame->GetXaxis()->SetTitleOffset(1.05);
     frame->GetYaxis()->SetTitleOffset(1.25);
 
@@ -235,8 +237,8 @@ inline void DrawPlot(const TableData& data, const std::string& spectrometer,
     legend.SetFillStyle(0);
     legend.SetTextFont(132);
     legend.SetTextSize(0.042);
-    // Keep the original x scale; each block has its own vertical range.
-    const double splitMomentum = 2.25;
+    // Only combined plots use two blocks with independent vertical ranges.
+    const double splitMomentum = 2.0;
     const double xMin = frame->GetXaxis()->GetXmin();
     const double xMax = frame->GetXaxis()->GetXmax();
     const double frameLeft = canvas.GetLeftMargin();
@@ -245,22 +247,23 @@ inline void DrawPlot(const TableData& data, const std::string& spectrometer,
     const double frameTop = 1 - canvas.GetTopMargin();
     const double splitPosition = frameLeft + (frameRight - frameLeft) *
         (splitMomentum - xMin) / (xMax - xMin);
-    const double rightLower = spectrometer == "SHMS" ? 60.0 : 70.0;
+    const double rightLower = spectrometer == "SHMS" ? 50.0 : 70.0;
     const double rightUpper = spectrometer == "SHMS" ? 70.0 : 80.0;
     const double xScale = canvas.GetWw() * (frameRight - frameLeft) / (xMax - xMin);
     std::array<std::unique_ptr<TPad>, 2> blocks;
     std::vector<std::unique_ptr<TGraph>> strokes;
     std::vector<std::unique_ptr<TF1>> curves;
     std::vector<std::unique_ptr<TGraph>> points;
-    for (unsigned block = 0; block < 2; ++block) {
+    const unsigned blockCount = combined ? 2 : 1;
+    for (unsigned block = 0; block < blockCount; ++block) {
         const double blockXMin = block == 0 ? xMin : splitMomentum;
-        const double blockXMax = block == 0 ? splitMomentum : xMax;
+        const double blockXMax = combined && block == 0 ? splitMomentum : xMax;
         const double blockLower = block == 0 ? lower : rightLower;
         const double blockUpper = block == 0 ? upper : rightUpper;
         canvas.cd();
         blocks[block].reset(new TPad((stem + "_block_" + std::to_string(block)).c_str(), "",
             block == 0 ? frameLeft : splitPosition, frameBottom,
-            block == 0 ? splitPosition : frameRight, frameTop));
+            combined && block == 0 ? splitPosition : frameRight, frameTop));
         TPad& pad = *blocks[block];
         pad.SetMargin(0, 0, 0, 0);
         pad.SetBorderMode(0);
@@ -314,20 +317,20 @@ inline void DrawPlot(const TableData& data, const std::string& spectrometer,
     canvas.RedrawAxis();
     TLine divider(splitMomentum, lower, splitMomentum, upper);
     divider.SetLineColor(kGray + 1);
-    divider.Draw();
-    TGaxis rightAxis(xMax, lower, xMax, upper, rightLower, rightUpper, 505, "+LN");
+    if (combined) divider.Draw();
+    TGaxis rightAxis(xMax, lower, xMax, upper, rightLower, rightUpper, spectrometer == "SHMS" ? 504 : 505, "+LN");
     rightAxis.SetLabelFont(132);
     rightAxis.SetLabelSize(0.037);
     rightAxis.SetLabelOffset(0.008);
     rightAxis.SetTickSize(0.012);
-    rightAxis.Draw();
+    if (combined) rightAxis.Draw();
     if (combined) legend.Draw();
     TLatex text;
     text.SetNDC();
     text.SetTextFont(132);
     text.SetTextSize(0.024);
     text.SetTextAlign(21);
-    text.DrawLatex(splitPosition, 0.88, "2.25 GeV/c");
+    if (combined) text.DrawLatex(splitPosition, 0.88, "2 GeV/c");
     text.SetTextAlign(11);
     text.SetTextSize(0.046);
     text.DrawLatex(0.14, 0.925, Form("#bf{%s}   L = %.6g m", spectrometer.c_str(), data.length));
