@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Generate HMS TOF tables (CSV/TXT, times in ns).
+"""Generate HMS TOF tables (CSV/TXT/PDF, times in ns).
+
+Setup: python3 -m pip install -r requirements.txt
 
 Usage: python3 generate_hms_tof_tables.py
        python3 generate_hms_tof_tables.py --path-length-m LENGTH --output-dir tables
 
-Writes individual particle tables plus hms_tof.csv and hms_tof.txt.
+Writes individual and combined hms_tof tables in CSV, TXT, and PDF formats.
 LENGTH is in meters. Defaults come from the parameter modules.
 Tables are written beside this script unless --output-dir is given;
 existing files with the same names are overwritten.

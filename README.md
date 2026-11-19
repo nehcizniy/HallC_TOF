@@ -5,7 +5,15 @@ Hall C's SHMS and HMS spectrometers.
 
 ## Run
 
-Requires Python 3; no external packages are needed.
+Requires Python 3.8+ and ReportLab. Set up an isolated environment:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+Run both generators in that environment:
 
 ```bash
 python3 generate_shms_tof_tables.py
@@ -19,8 +27,12 @@ python3 generate_shms_tof_tables.py --path-length-m 18.1 --output-dir tables
 ```
 
 Each script writes individual electron, pion, kaon, and proton tables, plus
-one combined table, in both CSV and TXT formats. Files use `shms_` or `hms_`
+one combined table, in CSV, TXT, and PDF formats. Files use `shms_` or `hms_`
 prefixes. Outputs default to the script directory; matching files are overwritten.
+
+PDFs have selectable text, column units, and calculation notes. Combined PDFs
+are `shms_tof.pdf` and `hms_tof.pdf`; individual PDFs use the same names as
+the corresponding CSV files, with a `.pdf` extension.
 
 ## Parameters and calculation
 
@@ -60,5 +72,7 @@ for the electron and PDG 2025 for the
 
 Validation checked all 176 TOF values using 50-digit arithmetic, agreement
 between individual/combined and CSV/TXT tables, and reproducible generation
-of all 20 files. Differences from the independent calculation were below
+of all 20 CSV/TXT files. PDF validation also checked all ten documents against
+the CSV tables and confirmed that each contains all 22 rows on one page.
+Differences from the independent calculation were below
 5 × 10⁻⁷ ns, consistent with six-decimal output rounding.
