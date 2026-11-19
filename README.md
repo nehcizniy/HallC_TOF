@@ -81,8 +81,14 @@ distinct line styles, colors, and marker shapes.
 Dash spacing follows distance along each curve, keeping the pattern uniform
 as the curves flatten at high momentum in both PNG and PDF outputs.
 Electrons are light grey (`#B3B3B3`); pions blue, kaons orange, and protons green.
-The individual electron plot uses a minimum 0.2 ns vertical span so the tiny
-physical variation is not visually exaggerated. Run output can be saved with
+Each plot has two blocks separated at 2.25 GeV/c. The x-axis positions,
+linear spacing, and original outer padding are unchanged, so the widths for
+0.5–2.25 and 2.25–11 GeV/c are proportional to their momentum spans (1:5).
+The left block keeps the original y range. The right block uses 60–70 ns for
+SHMS and 75–85 ns for HMS, labeled on the right edge. Values outside these
+limits are clipped; the HMS electron curve is below its right-block range.
+The individual electron plot's left block uses a minimum 0.2 ns vertical span
+so the tiny physical variation is not visually exaggerated. Run output can be saved with
 `2>&1 | tee root-run.log` (use `set -o pipefail` in shell scripts).
 
 ## Parameters and calculation

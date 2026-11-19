@@ -5,6 +5,9 @@
 #include <TColor.h>
 #include <TF1.h>
 #include <TGraph.h>
+#include <TGaxis.h>
+#include <TLine.h>
+#include <TPad.h>
 #include <TH1F.h>
 #include <TLatex.h>
 #include <TLegend.h>
@@ -206,7 +209,7 @@ inline void DrawPlot(const TableData& data, const std::string& spectrometer,
     canvas.SetRightMargin(0.04);
     canvas.SetTopMargin(0.13);
     canvas.SetBottomMargin(0.15);
-    canvas.SetTicks(1, 1);
+    canvas.SetTicks(1, 0);
     canvas.SetLogy(false);
     TH1F* frame = canvas.DrawFrame(data.momentum.front() - 0.15, lower,
                                   data.momentum.back() + 0.25, upper);
@@ -232,40 +235,100 @@ inline void DrawPlot(const TableData& data, const std::string& spectrometer,
     legend.SetFillStyle(0);
     legend.SetTextFont(132);
     legend.SetTextSize(0.042);
-    const double xScale = canvas.GetWw() * (1 - canvas.GetLeftMargin() - canvas.GetRightMargin()) /
-        (frame->GetXaxis()->GetXmax() - frame->GetXaxis()->GetXmin());
-    const double yScale = canvas.GetWh() * (1 - canvas.GetTopMargin() - canvas.GetBottomMargin()) /
-        (upper - lower);
+    // Keep the original x scale; each block has its own vertical range.
+    const double splitMomentum = 2.25;
+    const double xMin = frame->GetXaxis()->GetXmin();
+    const double xMax = frame->GetXaxis()->GetXmax();
+    const double frameLeft = canvas.GetLeftMargin();
+    const double frameRight = 1 - canvas.GetRightMargin();
+    const double frameBottom = canvas.GetBottomMargin();
+    const double frameTop = 1 - canvas.GetTopMargin();
+    const double splitPosition = frameLeft + (frameRight - frameLeft) *
+        (splitMomentum - xMin) / (xMax - xMin);
+    const double rightLower = spectrometer == "SHMS" ? 60.0 : 75.0;
+    const double rightUpper = spectrometer == "SHMS" ? 70.0 : 85.0;
+    const double xScale = canvas.GetWw() * (frameRight - frameLeft) / (xMax - xMin);
+    std::array<std::unique_ptr<TPad>, 2> blocks;
     std::vector<std::unique_ptr<TGraph>> strokes;
     std::vector<std::unique_ptr<TF1>> curves;
     std::vector<std::unique_ptr<TGraph>> points;
-    for (unsigned i : selected) {
-        const int color = TColor::GetColor(colors[i]);
-        std::unique_ptr<TF1> curve(new TF1((stem + "_" + particles[i]).c_str(),
-            "[0]/[1]*sqrt(1+([2]/x)^2)", data.momentum.front(), data.momentum.back()));
-        curve->SetParameters(data.length, data.speedOfLight, data.mass[i]);
-        curve->SetNpx(2000);
-        curve->SetLineColor(color);
-        curve->SetLineWidth(2);
-        curve->SetLineStyle(lineStyles[i]);
-        if (lineStyles[i] == 1) curve->Draw("SAME");
-        else DrawDashedCurve(*curve, i, xScale, yScale, strokes);
-        std::unique_ptr<TGraph> graph(new TGraph(data.momentum.size(), data.momentum.data(), data.tof[i].data()));
-        graph->SetMarkerColor(color);
-        graph->SetMarkerStyle(markerStyles[i]);
-        graph->SetMarkerSize(markerSize);
-        graph->SetLineColor(color);
-        graph->SetLineWidth(2);
-        graph->SetLineStyle(lineStyles[i]);
-        graph->Draw("P SAME");
-        legend.AddEntry(graph.get(), labels[i], "lp");
-        curves.push_back(std::move(curve));
-        points.push_back(std::move(graph));
+    for (unsigned block = 0; block < 2; ++block) {
+        const double blockXMin = block == 0 ? xMin : splitMomentum;
+        const double blockXMax = block == 0 ? splitMomentum : xMax;
+        const double blockLower = block == 0 ? lower : rightLower;
+        const double blockUpper = block == 0 ? upper : rightUpper;
+        canvas.cd();
+        blocks[block].reset(new TPad((stem + "_block_" + std::to_string(block)).c_str(), "",
+            block == 0 ? frameLeft : splitPosition, frameBottom,
+            block == 0 ? splitPosition : frameRight, frameTop));
+        TPad& pad = *blocks[block];
+        pad.SetMargin(0, 0, 0, 0);
+        pad.SetBorderMode(0);
+        pad.SetFrameBorderMode(0);
+        pad.SetFillColor(kWhite);
+        pad.Draw();
+        pad.cd();
+        TH1F* blockFrame = pad.DrawFrame(blockXMin, blockLower, blockXMax, blockUpper);
+        for (TAxis* axis : {blockFrame->GetXaxis(), blockFrame->GetYaxis()}) {
+            axis->SetLabelSize(0);
+            axis->SetTickLength(0);
+        }
+        const double yScale = canvas.GetWh() * (frameTop - frameBottom) /
+            (blockUpper - blockLower);
+        for (unsigned i : selected) {
+            const int color = TColor::GetColor(colors[i]);
+            std::unique_ptr<TF1> curve(new TF1((stem + "_" + particles[i] +
+                "_block_" + std::to_string(block)).c_str(), "[0]/[1]*sqrt(1+([2]/x)^2)",
+                std::max(blockXMin, data.momentum.front()),
+                std::min(blockXMax, data.momentum.back())));
+            curve->SetParameters(data.length, data.speedOfLight, data.mass[i]);
+            curve->SetNpx(2000);
+            curve->SetLineColor(color);
+            curve->SetLineWidth(2);
+            curve->SetLineStyle(lineStyles[i]);
+            if (lineStyles[i] == 1) curve->Draw("SAME");
+            else DrawDashedCurve(*curve, i, xScale, yScale, strokes);
+            std::vector<double> momenta, times;
+            for (unsigned row = 0; row < data.momentum.size(); ++row) {
+                if (data.momentum[row] < blockXMin || data.momentum[row] > blockXMax) continue;
+                if (data.tof[i][row] < blockLower || data.tof[i][row] > blockUpper) continue;
+                momenta.push_back(data.momentum[row]);
+                times.push_back(data.tof[i][row]);
+            }
+            std::unique_ptr<TGraph> graph(new TGraph(momenta.size(), momenta.data(), times.data()));
+            graph->SetMarkerColor(color);
+            graph->SetMarkerStyle(markerStyles[i]);
+            graph->SetMarkerSize(markerSize);
+            graph->SetLineColor(color);
+            graph->SetLineWidth(2);
+            graph->SetLineStyle(lineStyles[i]);
+            if (!momenta.empty()) graph->Draw("P SAME");
+            if (block == 0) legend.AddEntry(graph.get(), labels[i], "lp");
+            curves.push_back(std::move(curve));
+            points.push_back(std::move(graph));
+        }
+        pad.Modified();
+        pad.Update();
     }
+    canvas.cd();
+    canvas.RedrawAxis();
+    TLine divider(splitMomentum, lower, splitMomentum, upper);
+    divider.SetLineColor(kGray + 1);
+    divider.Draw();
+    TGaxis rightAxis(xMax, lower, xMax, upper, rightLower, rightUpper, 505, "+LN");
+    rightAxis.SetLabelFont(132);
+    rightAxis.SetLabelSize(0.037);
+    rightAxis.SetLabelOffset(0.008);
+    rightAxis.SetTickSize(0.012);
+    rightAxis.Draw();
     if (combined) legend.Draw();
     TLatex text;
     text.SetNDC();
     text.SetTextFont(132);
+    text.SetTextSize(0.024);
+    text.SetTextAlign(21);
+    text.DrawLatex(splitPosition, 0.88, "2.25 GeV/c");
+    text.SetTextAlign(11);
     text.SetTextSize(0.046);
     text.DrawLatex(0.14, 0.925, Form("#bf{%s}   L = %.6g m", spectrometer.c_str(), data.length));
     text.SetTextAlign(31);
@@ -273,7 +336,6 @@ inline void DrawPlot(const TableData& data, const std::string& spectrometer,
     text.SetTextAlign(11);
     text.SetTextSize(0.024);
     text.DrawLatex(0.14, 0.015, "Target to focal-plane center; central trajectory, no energy loss");
-    canvas.RedrawAxis();
     canvas.Modified();
     canvas.Update();
     for (const char* extension : {"png", "pdf"}) {
