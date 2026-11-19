@@ -87,7 +87,7 @@ All plots use an x range of 0–11.5 GeV/c; curves and markers cover only
 0.5–11 GeV/c. Single-particle plots use one continuous panel.
 Combined plots have two blocks separated at 2 GeV/c, with widths proportional
 to their displayed momentum ranges. The combined SHMS plot starts both y axes
-at 50 ns; its left upper limit is automatic and its right range is 50–70 ns.
+at 55 ns; its left upper limit is automatic and its right range is 55–70 ns.
 The combined HMS plot keeps the original left y range and uses 70–80 ns on
 the right. Values outside the selected y limits are clipped.
 Individual electron plots use a minimum 0.2 ns vertical span so the tiny

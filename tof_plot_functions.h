@@ -199,7 +199,7 @@ inline void DrawPlot(const TableData& data, const std::string& spectrometer,
         upper = center + 0.1;
     }
 
-    if (combined && spectrometer == "SHMS") lower = 50.0;
+    if (combined && spectrometer == "SHMS") lower = 55.0;
 
     TCanvas canvas(stem.c_str(), stem.c_str(), 1800, 1350);
     canvas.SetCanvasSize(1800, 1350);
@@ -247,7 +247,7 @@ inline void DrawPlot(const TableData& data, const std::string& spectrometer,
     const double frameTop = 1 - canvas.GetTopMargin();
     const double splitPosition = frameLeft + (frameRight - frameLeft) *
         (splitMomentum - xMin) / (xMax - xMin);
-    const double rightLower = spectrometer == "SHMS" ? 50.0 : 70.0;
+    const double rightLower = spectrometer == "SHMS" ? 55.0 : 70.0;
     const double rightUpper = spectrometer == "SHMS" ? 70.0 : 80.0;
     const double xScale = canvas.GetWw() * (frameRight - frameLeft) / (xMax - xMin);
     std::array<std::unique_ptr<TPad>, 2> blocks;
@@ -318,7 +318,7 @@ inline void DrawPlot(const TableData& data, const std::string& spectrometer,
     TLine divider(splitMomentum, lower, splitMomentum, upper);
     divider.SetLineColor(kGray + 1);
     if (combined) divider.Draw();
-    TGaxis rightAxis(xMax, lower, xMax, upper, rightLower, rightUpper, spectrometer == "SHMS" ? 504 : 505, "+LN");
+    TGaxis rightAxis(xMax, lower, xMax, upper, rightLower, rightUpper, spectrometer == "SHMS" ? 503 : 505, "+LN");
     rightAxis.SetLabelFont(132);
     rightAxis.SetLabelSize(0.037);
     rightAxis.SetLabelOffset(0.008);
@@ -328,6 +328,11 @@ inline void DrawPlot(const TableData& data, const std::string& spectrometer,
     TLatex text;
     text.SetNDC();
     text.SetTextFont(132);
+    if (combined && spectrometer == "SHMS") {
+        text.SetTextSize(0.043);
+        text.SetTextAlign(32);
+        text.DrawLatex(frameLeft - 0.012, frameBottom, Form("%g", lower));
+    }
     text.SetTextSize(0.024);
     text.SetTextAlign(21);
     if (combined) text.DrawLatex(splitPosition, 0.88, "2 GeV/c");
