@@ -30,7 +30,8 @@ Each script writes individual electron, pion, kaon, and proton tables, plus
 one combined table, in CSV, TXT, and PDF formats. Files use `shms_` or `hms_`
 prefixes. Outputs default to the script directory; matching files are overwritten.
 
-PDFs have selectable text, column units, and calculation notes. Combined PDFs
+PDFs use serif text, a compact caption, three horizontal rules, and no shading
+or vertical rules. They include column units and calculation notes. Combined PDFs
 are `shms_tof.pdf` and `hms_tof.pdf`; individual PDFs use the same names as
 the corresponding CSV files, with a `.pdf` extension.
 

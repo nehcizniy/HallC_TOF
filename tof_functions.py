@@ -8,7 +8,7 @@ from xml.sax.saxutils import escape
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import ParagraphStyle
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 
@@ -31,43 +31,56 @@ def tof_ns(momentum_gev_c, mass_gev_c2, path_length_m, *, c_m_per_ns):
 
 
 def write_pdf_table(path, title, headers, rows, notes):
-    """Write a printable table with units and calculation notes."""
+    """Write a paper-style table with serif text and three horizontal rules."""
     labels = {"momentum_GeV_c": "Momentum\n(GeV/c)",
               "path_length_m": "Path length\n(m)", "tof_ns": "TOF\n(ns)"}
     headings = [labels.get(h, h.replace("_tof_ns", "").capitalize() + "\nTOF (ns)")
                 for h in headers]
-    styles = getSampleStyleSheet()
+    caption_style = ParagraphStyle("Caption", fontName="Times-Roman", fontSize=11,
+                                   leading=14, spaceAfter=10)
+    note_style = ParagraphStyle("Notes", fontName="Times-Roman", fontSize=9,
+                                leading=12)
+    # Keep individual tables compact; allow more width for combined tables.
+    width = 330 if len(headers) == 3 else 504
+    margin = (letter[0] - width) / 2
     document = SimpleDocTemplate(
-        str(path), pagesize=letter, rightMargin=42, leftMargin=42,
-        topMargin=36, bottomMargin=36, title=title, author="HallC_TOF",
+        str(path), pagesize=letter, rightMargin=margin, leftMargin=margin,
+        topMargin=54, bottomMargin=54, title=title, author="HallC_TOF",
         invariant=1,
     )
-    table = Table([headings, *rows], colWidths=[document.width / len(headers)] * len(headers),
+    table = Table([headings, *rows], colWidths=[width / len(headers)] * len(headers),
                   repeatRows=1, hAlign="CENTER")
     table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#213547")),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
-        ("FONTSIZE", (0, 0), (-1, -1), 9),
+        ("FONTNAME", (0, 0), (-1, -1), "Times-Roman"),
+        ("FONTNAME", (0, 0), (-1, 0), "Times-Bold"),
+        ("TEXTCOLOR", (0, 0), (-1, -1), colors.black),
+        ("FONTSIZE", (0, 0), (-1, -1), 10),
         ("ALIGN", (0, 0), (-1, 0), "CENTER"),
         ("ALIGN", (0, 1), (-1, -1), "RIGHT"),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("TOPPADDING", (0, 0), (-1, -1), 4),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f0f3f6")]),
-        ("LINEBELOW", (0, -1), (-1, -1), 0.5, colors.HexColor("#213547")),
+        ("TOPPADDING", (0, 0), (-1, -1), 3),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+        ("TOPPADDING", (0, 0), (-1, 0), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, 0), 6),
+        ("LEFTPADDING", (0, 0), (-1, -1), 10),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+        ("LINEABOVE", (0, 0), (-1, 0), 0.8, colors.black),
+        ("LINEBELOW", (0, 0), (-1, 0), 0.4, colors.black),
+        ("LINEBELOW", (0, -1), (-1, -1), 0.8, colors.black),
     ]))
-    story = [Paragraph(escape(title), styles["Title"]),
-             Paragraph("Target to focal-plane center", styles["Normal"]), Spacer(1, 8)]
-    story.extend(Paragraph(escape(note), styles["Normal"]) for note in notes)
+    caption = (f"<b>TABLE I.</b> {escape(title)} from the target to the "
+               f"focal-plane center. {escape(notes[0])}")
+    caption = caption.replace("GeV/c^2", "GeV/<i>c</i><super>2</super>")
+    story = [Paragraph(caption, caption_style), table, Spacer(1, 8)]
+    # Typeset the existing formula and units without changing the calculation.
+    formula = escape(notes[1]).replace("TOF", "<i>t</i>").replace("beta", "β")
+    formula = formula.replace("sqrt(p^2 + m^2)", "√(p<super>2</super> + m<super>2</super>)")
+    formula = formula.replace("*", " ")
     story.extend([
-        Spacer(1, 12), table, Spacer(1, 10),
-        Paragraph("Absolute TOF; constant momentum and fixed path. No energy loss, decay, "
-                  "or event-specific path correction.", styles["Normal"]),
-        Spacer(1, 4),
-        Paragraph("Six decimal places are output formatting, not experimental precision.",
-                  styles["Normal"]),
+        Paragraph("<i>Notes.</i> " + formula, note_style),
+        Paragraph("Constant momentum and central path; no energy loss, decay, or "
+                  "event-specific path correction. Printed digits do not indicate "
+                  "experimental precision.", note_style),
     ])
     document.build(story)
 
@@ -107,7 +120,7 @@ def generate_tables(path_length_m, output_dir, *, spectrometer, filename_prefix,
         # Write a PDF from the same formatted data.
         pdf_path = output_dir / f"{filename_prefix}{particle}_tof.pdf"
         write_pdf_table(
-            pdf_path, f"{spectrometer} - {particle.capitalize()} TOF",
+            pdf_path, f"{spectrometer} {particle} time of flight",
             ["momentum_GeV_c", "path_length_m", "tof_ns"], rows,
             [f"Path length: {path_length_m:.12g} m; mass: {mass:.11g} GeV/c^2.",
              f"TOF = L/(beta*c); beta = p/sqrt(p^2 + m^2); c = {c_m_per_ns:.12g} m/ns."],
@@ -137,7 +150,7 @@ def generate_tables(path_length_m, output_dir, *, spectrometer, filename_prefix,
             stream.write(" ".join(f"{value:>16}" for value in row) + "\n")
     pdf_path = output_dir / f"{filename_prefix}tof.pdf"
     write_pdf_table(
-        pdf_path, f"{spectrometer} - All particles TOF", headers, combined_rows,
+        pdf_path, f"{spectrometer} time of flight for all particles", headers, combined_rows,
         [f"Path length: {path_length_m:.12g} m.",
          f"TOF = L/(beta*c); beta = p/sqrt(p^2 + m^2); c = {c_m_per_ns:.12g} m/ns."],
     )
