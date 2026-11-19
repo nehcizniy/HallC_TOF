@@ -28,7 +28,8 @@ namespace HallCTOF {
 static const std::array<const char*, 4> particles = {{"electron", "pion", "kaon", "proton"}};
 static const std::array<const char*, 4> labels = {{"Electron", "Pion", "Kaon", "Proton"}};
 static const std::array<const char*, 4> colors = {{"#B3B3B3", "#0072B2", "#D55E00", "#009E73"}};
-static const std::array<int, 4> lineStyles = {{1, 2, 7, 9}};
+static const int lineStyle = 1;
+static const double markerSize = 1.2;
 static const std::array<int, 4> markerStyles = {{20, 21, 22, 23}};
 
 struct TableData {
@@ -185,15 +186,15 @@ inline void DrawPlot(const TableData& data, const std::string& spectrometer,
         curve->SetNpx(2000);
         curve->SetLineColor(color);
         curve->SetLineWidth(2);
-        curve->SetLineStyle(lineStyles[i]);
+        curve->SetLineStyle(lineStyle);
         curve->Draw("SAME");
         std::unique_ptr<TGraph> graph(new TGraph(data.momentum.size(), data.momentum.data(), data.tof[i].data()));
         graph->SetMarkerColor(color);
         graph->SetMarkerStyle(markerStyles[i]);
-        graph->SetMarkerSize(0.9);
+        graph->SetMarkerSize(markerSize);
         graph->SetLineColor(color);
         graph->SetLineWidth(2);
-        graph->SetLineStyle(lineStyles[i]);
+        graph->SetLineStyle(lineStyle);
         graph->Draw("P SAME");
         legend.AddEntry(graph.get(), labels[i], "lp");
         curves.push_back(std::move(curve));

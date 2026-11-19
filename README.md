@@ -77,7 +77,7 @@ headers, and the path length comes from the combined CSV. The macros reject
 inconsistent inputs before plotting. Keep the CSV and TXT tables together.
 
 Plots use linear TOF (y) and momentum (x) axes, serif labels,
-and distinct colors, line styles, and markers.
+solid curves, and distinct colors and marker shapes.
 Electrons are light grey (`#B3B3B3`); pions blue, kaons orange, and protons green.
 The individual electron plot uses a minimum 0.2 ns vertical span so the tiny
 physical variation is not visually exaggerated. Run output can be saved with
