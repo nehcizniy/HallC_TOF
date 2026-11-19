@@ -245,8 +245,8 @@ inline void DrawPlot(const TableData& data, const std::string& spectrometer,
     const double frameTop = 1 - canvas.GetTopMargin();
     const double splitPosition = frameLeft + (frameRight - frameLeft) *
         (splitMomentum - xMin) / (xMax - xMin);
-    const double rightLower = spectrometer == "SHMS" ? 60.0 : 75.0;
-    const double rightUpper = spectrometer == "SHMS" ? 70.0 : 85.0;
+    const double rightLower = spectrometer == "SHMS" ? 60.0 : 70.0;
+    const double rightUpper = spectrometer == "SHMS" ? 70.0 : 80.0;
     const double xScale = canvas.GetWw() * (frameRight - frameLeft) / (xMax - xMin);
     std::array<std::unique_ptr<TPad>, 2> blocks;
     std::vector<std::unique_ptr<TGraph>> strokes;

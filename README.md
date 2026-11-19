@@ -85,8 +85,8 @@ Each plot has two blocks separated at 2.25 GeV/c. The x-axis positions,
 linear spacing, and original outer padding are unchanged, so the widths for
 0.5–2.25 and 2.25–11 GeV/c are proportional to their momentum spans (1:5).
 The left block keeps the original y range. The right block uses 60–70 ns for
-SHMS and 75–85 ns for HMS, labeled on the right edge. Values outside these
-limits are clipped; the HMS electron curve is below its right-block range.
+SHMS and 70–80 ns for HMS, labeled on the right edge. Values outside these
+limits are clipped.
 The individual electron plot's left block uses a minimum 0.2 ns vertical span
 so the tiny physical variation is not visually exaggerated. Run output can be saved with
 `2>&1 | tee root-run.log` (use `set -o pipefail` in shell scripts).
