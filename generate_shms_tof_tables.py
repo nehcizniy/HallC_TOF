@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-"""Generate SHMS TOF tables (CSV/TXT/PDF, times in ns).
+"""Generate SHMS TOF tables and matching ROOT-style plots (times in ns).
 
-Setup: python3 -m pip install -r requirements.txt
+Setup: python3 -m pip install -r requirements.txt; ROOT 6 must be on PATH.
 
 Usage: python3 generate_shms_tof_tables.py
        python3 generate_shms_tof_tables.py --path-length-m LENGTH --output-dir tables
+       python3 generate_shms_tof_tables.py --tables-only
 
 Writes individual and combined shms_tof tables in CSV, TXT, and PDF formats.
+Plots use the same ROOT macros and style, under OUTPUT_DIR/plots/SHMS.
 LENGTH is in meters. Defaults come from the parameter modules.
 Tables are written beside this script unless --output-dir is given;
 existing files with the same names are overwritten.
@@ -18,7 +20,7 @@ from pathlib import Path
 # Load parameters and shared functions.
 import common_parameters as common
 import shms_parameters as parameters
-from tof_functions import generate_tables, positive_length
+from tof_functions import generate_plots, generate_tables, plot_command, positive_length
 
 
 def main():
@@ -34,7 +36,20 @@ def main():
         "--output-dir", type=Path, default=Path(__file__).resolve().parent,
         help="output directory (default: script directory)",
     )
+    parser.add_argument(
+        "--tables-only", action="store_true", help="skip ROOT plots and generate only tables",
+    )
     args = parser.parse_args()
+    # Check plotting dependencies before writing output files.
+    command = None
+    if not args.tables_only:
+        try:
+            command = plot_command(
+                args.output_dir, args.output_dir / "plots" / parameters.SPECTROMETER,
+                spectrometer=parameters.SPECTROMETER,
+            )
+        except (ValueError, RuntimeError) as exc:
+            parser.error(str(exc))
     # Generate tables with the selected settings.
     generate_tables(
         args.path_length_m, args.output_dir,
@@ -44,6 +59,12 @@ def main():
         momenta_gev_c=common.MOMENTA_GEV_C,
         c_m_per_ns=common.C_M_PER_NS,
     )
+
+    if command is not None:
+        try:
+            generate_plots(command)
+        except RuntimeError as exc:
+            parser.exit(1, f"{parser.prog}: {exc}\n")
 
 
 if __name__ == "__main__":

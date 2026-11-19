@@ -5,7 +5,8 @@ Hall C's SHMS and HMS spectrometers.
 
 ## Run
 
-Requires Python 3.8+ and ReportLab. Set up an isolated environment:
+Requires Python 3.8+, ReportLab, and a ROOT 6 `root` executable on PATH.
+Set up an isolated Python environment:
 
 ```bash
 python3 -m venv .venv
@@ -24,6 +25,21 @@ Optional arguments:
 
 ```bash
 python3 generate_shms_tof_tables.py --path-length-m 18.1 --output-dir tables
+```
+
+Each Python script also generates the five PNG/PDF plots for its spectrometer,
+using the same ROOT macro and shared style as the standalone ROOT commands.
+No PyROOT Python package is needed. Plots go under `OUTPUT_DIR/plots/SHMS/`
+or `OUTPUT_DIR/plots/HMS/`. The current linear axes, `TOF(ns)` / `p(GeV/c)`
+labels, light-grey electrons, colors, fonts, and canvas sizes are identical.
+ROOT output streams to the terminal. A plotting failure makes the script exit
+with a nonzero status; missing ROOT is detected before generating tables.
+
+To generate tables without ROOT:
+
+```bash
+python3 generate_shms_tof_tables.py --tables-only
+python3 generate_hms_tof_tables.py --tables-only
 ```
 
 Each script writes individual electron, pion, kaon, and proton tables, plus
@@ -89,9 +105,9 @@ theoretical calculation, not a statement of spectrometer operating limits.
 
 - `common_parameters.py`: shared masses, speed of light, and momentum grid.
 - `shms_parameters.py`, `hms_parameters.py`: spectrometer settings.
-- `tof_functions.py`: common functions and sections reserved for future
+- `tof_functions.py`: table functions, ROOT command execution, and sections reserved for future
   spectrometer-specific corrections.
-- `generate_shms_tof_tables.py`, `generate_hms_tof_tables.py`: table entry scripts.
+- `generate_shms_tof_tables.py`, `generate_hms_tof_tables.py`: table and plot entry scripts.
 - `plot_TOF_vs_momentum_SHMS.C`, `plot_TOF_vs_momentum_HMS.C`: ROOT plot entry macros.
 - `tof_plot_functions.h`: shared ROOT plotting and input checks.
 

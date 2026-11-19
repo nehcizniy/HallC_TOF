@@ -2,7 +2,10 @@
 
 import argparse
 import csv
+import json
 import math
+import shutil
+import subprocess
 from pathlib import Path
 from xml.sax.saxutils import escape
 
@@ -155,6 +158,32 @@ def generate_tables(path_length_m, output_dir, *, spectrometer, filename_prefix,
          f"TOF = L/(beta*c); beta = p/sqrt(p^2 + m^2); c = {c_m_per_ns:.12g} m/ns."],
     )
     print(f"Wrote {csv_path}, {txt_path}, and {pdf_path} ({len(combined_rows)} rows each)")
+
+
+def plot_command(table_dir, output_dir, *, spectrometer):
+    """Prepare a batch ROOT command using the shared plot style."""
+    if spectrometer not in ("SHMS", "HMS"):
+        raise ValueError("spectrometer must be SHMS or HMS")
+    root = shutil.which("root")
+    if root is None:
+        raise RuntimeError("ROOT is not on PATH; set up ROOT or use --tables-only.")
+    macro = Path(__file__).resolve().parent / f"plot_TOF_vs_momentum_{spectrometer}.C"
+    header = macro.with_name("tof_plot_functions.h")
+    if not macro.is_file() or not header.is_file():
+        raise RuntimeError("Keep the ROOT macros and tof_plot_functions.h beside the Python scripts.")
+    # Quote C++ string arguments; execute directly without a shell.
+    arguments = ", ".join(json.dumps(str(Path(p).resolve()), ensure_ascii=False)
+                          for p in (table_dir, output_dir))
+    return [root, "-l", "-b", "-q", f"{macro}({arguments})"]
+
+
+def generate_plots(command):
+    """Run the prepared ROOT command and stream its progress."""
+    print("Generating PNG/PDF plots with the shared ROOT macros...", flush=True)
+    try:
+        subprocess.run(command, check=True)
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise RuntimeError(f"ROOT plot generation failed: {exc}") from exc
 
 
 # 2. SHMS-specific functions: reserved for future corrections.
